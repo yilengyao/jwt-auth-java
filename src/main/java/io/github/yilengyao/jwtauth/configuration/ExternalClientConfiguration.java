@@ -17,22 +17,15 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration
 public class ExternalClientConfiguration {
 
+    private static final String ERROR_MESSAGE = "MONGO_DATABASE_URI not set in the environment variables";
+
     @Bean
     public MongoClient mongoClient(@Value("${MONGO_DATABASE_URI:}") String mongoDatabaseUri) {
-        if (mongoDatabaseUri.isEmpty()) {
-            log.warn("MONGO_DATABASE_URI not set in the environment variables");
-            throw new IllegalArgumentException("MONGO_DATABASE_URI not set in the environment variables");
+        if (mongoDatabaseUri == null || mongoDatabaseUri.isEmpty()) {
+            log.warn(ERROR_MESSAGE);
+            throw new IllegalArgumentException(ERROR_MESSAGE);
         }
 
-        // ServerApi serverApi = ServerApi.builder()
-        //         .version(ServerApiVersion.V1)
-        //         .build();
-        //
-        // MongoClientSettings settings = MongoClientSettings.builder()
-        //         .applyConnectionString(new ConnectionString(mongoDatabaseUri))
-        //         .serverApi(serverApi)
-        //         .build();
-        //
         return MongoClients.create(mongoDatabaseUri);
     }
 }
