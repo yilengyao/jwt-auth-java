@@ -1,6 +1,7 @@
 package io.github.yilengyao.jwtauth.repository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -23,7 +24,11 @@ public class CustomEmployeeRepositoryImpl implements CustomEmployeeRepository {
             .set("lastname", employee.getLastname())
             .set("email", employee.getEmail());
 
-    return mongoTemplate.findAndModify(query, update, Employee.class);
+    return mongoTemplate.findAndModify(
+        query, 
+        update, 
+        FindAndModifyOptions.options().returnNew(true), 
+        Employee.class);
   }
 
 }
