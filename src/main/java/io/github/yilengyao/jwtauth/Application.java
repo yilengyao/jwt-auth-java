@@ -6,7 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication(
   scanBasePackageClasses = {
     io.github.yilengyao.jwtauth.configuration.ApplicationSpecificSpringComponentScanMarker.class,
-    io.github.yilengyao.jwtauth.controller.ApplicationSpecificSpringComponentScanMarker.class
+    io.github.yilengyao.jwtauth.controller.ApplicationSpecificSpringComponentScanMarker.class,
+    io.github.yilengyao.jwtauth.service.ApplicationSpecificSpringComponentScanMarker.class
   }
 )
 public class Application {
