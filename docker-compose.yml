@@ -10,11 +10,13 @@ services:
       - "localhost:192.168.65.2"
     ports:
       - 8080:8080
-      - 6565:6565
+      - 5005:5005
     env_file:
       - .env
     volumes:
       - ${PWD}:/app
+      - /Users/yilengyao/Documents/InnoBridgeSecurity:/InnoBridgeSecurity
       - /var/run/docker.sock:/var/run/docker.sock
       - ./local/root:/root
+      - ~/.m2:/root/.m2
     tty: true

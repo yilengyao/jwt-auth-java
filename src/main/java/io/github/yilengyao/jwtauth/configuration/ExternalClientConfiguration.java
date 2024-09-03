@@ -18,8 +18,8 @@ import com.mongodb.ServerApi;
 import com.mongodb.ServerApiVersion;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-
 import lombok.extern.slf4j.Slf4j;
+import io.github.innobridge.security.constants.HTTPConstants;
 
 @Slf4j
 @Configuration
@@ -27,6 +27,7 @@ public class ExternalClientConfiguration {
 
     @Bean
     public MongoClient mongoClient(@Value("${MONGO_DATABASE_URI:}") String mongoDatabaseUri) {
+        System.out.println("Httpconstants: " + HTTPConstants.PUBLIC_URL);
         if (mongoDatabaseUri == null || mongoDatabaseUri.isEmpty()) {
             String errorMessage = "MONGO_DATABASE_URI not set in the environment variables";
             log.warn(errorMessage);
