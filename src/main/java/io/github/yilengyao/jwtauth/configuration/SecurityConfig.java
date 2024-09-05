@@ -19,11 +19,14 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import static io.github.innobridge.security.constants.HTTPConstants.*;
-import static io.github.innobridge.security.constants.HTTPConstants.API_DOCS_ALL_URL;
 
 @Configuration
 @EnableWebSecurity
@@ -32,7 +35,12 @@ import static io.github.innobridge.security.constants.HTTPConstants.API_DOCS_ALL
         "io.github.innobridge.security.repository",
         "io.github.yilengyao.jwtauth.repository"
 })
-public class SecurityConfig {
+public class SecurityConfig implements WebMvcConfigurer {
+
+    @Bean
+    public ClientRegistrationRepository clientRegistrationRepository(ClientRegistration clientRegistration) {
+        return new InMemoryClientRegistrationRepository(clientRegistration);
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
@@ -40,22 +48,24 @@ public class SecurityConfig {
                                                    UsernameEmailPasswordRegistrationFilter usernameEmailPasswordRegistrationFilter,
                                                    JwtAuthenticationFilter jwtAuthenticationFilter,
                                                    RefreshTokenFilter refreshTokenFilter,
-                                                   LogoutFilter logoutFilter) throws Exception {
-//        jwtUtils.setAccessTokenExpiration(new ExpirationTime(0, 2, 0, 0));
-//        usernameEmailPasswordAuthenticationFilter.setFilterProcessesUrl("/auth/login");
-//        usernameEmailPasswordRegistrationFilter.setUrl("/auth/register");
-//        jwtAuthenticationFilter.setSignoutUrl("/auth/logout");
-//        jwtAuthenticationFilter.setRefreshTokenUrl("/auth/tokenrefesh");
+                                                   LogoutFilter logoutFilter,
+                                                   CustomOAuth2SuccessHandler customOAuth2SuccessHandler,
+                                                   ClientRegistrationRepository clientRegistrationRepository) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
                         authorize -> authorize
-                                .requestMatchers(SWAGGER_UI_URL, SWAGGER_RESOURCES_URL, SWAGGER_RESOURCES_ALL_URL,
-                                        API_DOCS_ALL_URL).permitAll()
+                                .requestMatchers(WHITE_LIST_URL).permitAll()
                                 .anyRequest().authenticated()
                 )
-                .sessionManagement(sessionManagement -> sessionManagement
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // Default to stateless
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Stateful for OAuth2 flows
+                        .sessionFixation().none()  // No session fixation protection
+                )
+                .oauth2Login(oauth2 ->
+                        oauth2.clientRegistrationRepository(clientRegistrationRepository)// Ensure OAuth2 login is configured
+                                .successHandler(customOAuth2SuccessHandler))
                 .addFilterAt(usernameEmailPasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(usernameEmailPasswordRegistrationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
